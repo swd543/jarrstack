@@ -23,6 +23,6 @@ services:
       curl -fsSL https://ipinfo.io/json'
 
 networks:
-  traefik_proxy:
+  proxy_net:
     external: true
-    name: traefik_proxy
+    name: proxy_net

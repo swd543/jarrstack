@@ -6,7 +6,7 @@ services:
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=traefik_proxy
+      - --providers.docker.network=proxy_net
       - --entrypoints.web.address=:80
       - --api.dashboard=true
       - --api.insecure=true
@@ -16,7 +16,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - traefik_proxy
+      - proxy_net
 
   vpn:
     image: qmcgaw/gluetun:v3
@@ -43,9 +43,9 @@ services:
       - ../.env
     restart: unless-stopped
     networks:
-      - traefik_proxy
+      - proxy_net
 
 networks:
-  traefik_proxy:
-    name: traefik_proxy
+  proxy_net:
+    name: proxy_net
     driver: bridge
