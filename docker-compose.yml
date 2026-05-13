@@ -1,0 +1,65 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    expose:
+      - "9091"
+      - "51413"
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
+      - TZ=${TZ:-UTC}
+      - FIREWALL_INPUT_PORTS=9091,51413
+    volumes:
+      - ./gluetun:/gluetun
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_proxy
+      - traefik.http.routers.transmission-localhost.rule=Host(`localhost`) && PathPrefix(`/transmission`)
+      - traefik.http.routers.transmission-localhost.entrypoints=web
+      - traefik.http.routers.transmission-localhost.priority=100
+      - traefik.http.routers.transmission-localhost.service=transmission
+      - traefik.http.routers.transmission-default-localhost.rule=Host(`localhost`)
+      - traefik.http.routers.transmission-default-localhost.entrypoints=web
+      - traefik.http.routers.transmission-default-localhost.priority=0
+      - traefik.http.routers.transmission-default-localhost.service=transmission
+      - traefik.http.routers.transmission-bugaboxes.rule=Host(`bugaboxes.local`) && PathPrefix(`/transmission`)
+      - traefik.http.routers.transmission-bugaboxes.entrypoints=web
+      - traefik.http.routers.transmission-bugaboxes.priority=100
+      - traefik.http.routers.transmission-bugaboxes.service=transmission
+      - traefik.http.routers.transmission-default-bugaboxes.rule=Host(`bugaboxes.local`)
+      - traefik.http.routers.transmission-default-bugaboxes.entrypoints=web
+      - traefik.http.routers.transmission-default-bugaboxes.priority=0
+      - traefik.http.routers.transmission-default-bugaboxes.service=transmission
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./transmission/config:/config
+      - ./transmission/downloads:/downloads
+      - ./transmission/watch:/watch
+    restart: unless-stopped
+
+networks:
+  traefik_proxy:
+    external: true
+    name: traefik_proxy
