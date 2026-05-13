@@ -85,6 +85,10 @@ services:
       - traefik.http.routers.gluetun-webui.entrypoints=web
       - traefik.http.routers.gluetun-webui.priority=110
       - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip
+      - traefik.http.routers.gluetun-webui-api.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/api`)
+      - traefik.http.routers.gluetun-webui-api.entrypoints=web
+      - traefik.http.routers.gluetun-webui-api.priority=115
+      - traefik.http.routers.gluetun-webui-api.service=gluetun-webui
       - traefik.http.middlewares.gluetun-webui-strip.stripprefix.prefixes=/gluetun-webui
       - traefik.http.services.gluetun-webui.loadbalancer.server.port=3000
 
