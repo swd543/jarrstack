@@ -22,26 +22,6 @@ services:
     restart: unless-stopped
     networks:
       - traefik_proxy
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.transmission-localhost.rule=Host(`localhost`) && PathPrefix(`/transmission`)
-      - traefik.http.routers.transmission-localhost.entrypoints=web
-      - traefik.http.routers.transmission-localhost.priority=100
-      - traefik.http.routers.transmission-localhost.service=transmission
-      - traefik.http.routers.transmission-default-localhost.rule=Host(`localhost`)
-      - traefik.http.routers.transmission-default-localhost.entrypoints=web
-      - traefik.http.routers.transmission-default-localhost.priority=0
-      - traefik.http.routers.transmission-default-localhost.service=transmission
-      - traefik.http.routers.transmission-bugaboxes.rule=Host(`bugaboxes.local`) && PathPrefix(`/transmission`)
-      - traefik.http.routers.transmission-bugaboxes.entrypoints=web
-      - traefik.http.routers.transmission-bugaboxes.priority=100
-      - traefik.http.routers.transmission-bugaboxes.service=transmission
-      - traefik.http.routers.transmission-default-bugaboxes.rule=Host(`bugaboxes.local`)
-      - traefik.http.routers.transmission-default-bugaboxes.entrypoints=web
-      - traefik.http.routers.transmission-default-bugaboxes.priority=0
-      - traefik.http.routers.transmission-default-bugaboxes.service=transmission
-      - traefik.http.services.transmission.loadbalancer.server.port=9091
 
   transmission:
     image: lscr.io/linuxserver/transmission:latest
@@ -58,6 +38,18 @@ services:
       - ./transmission/downloads:/downloads
       - ./transmission/watch:/watch
     restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_proxy
+      - traefik.http.routers.transmission.rule=Host(`bugaboxes.local`) && PathPrefix(`/transmission`)
+      - traefik.http.routers.transmission.entrypoints=web
+      - traefik.http.routers.transmission.priority=100
+      - traefik.http.routers.transmission.service=transmission
+      - traefik.http.routers.transmission-default.rule=Host(`bugaboxes.local`)
+      - traefik.http.routers.transmission-default.entrypoints=web
+      - traefik.http.routers.transmission-default.priority=0
+      - traefik.http.routers.transmission-default.service=transmission
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
 
 networks:
   traefik_proxy:
