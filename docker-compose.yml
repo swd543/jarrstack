@@ -1,34 +1,8 @@
 services:
-  gluetun:
-    image: qmcgaw/gluetun:latest
-    container_name: gluetun
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    expose:
-      - "9091"
-      - "51413"
-    environment:
-      - VPN_SERVICE_PROVIDER=protonvpn
-      - VPN_TYPE=openvpn
-      - OPENVPN_USER=${OPENVPN_USER}
-      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
-      - TZ=${TZ:-UTC}
-      - FIREWALL_INPUT_PORTS=9091,51413
-    volumes:
-      - ./gluetun:/gluetun
-    restart: unless-stopped
-    networks:
-      - traefik_proxy
-
   transmission:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
-    network_mode: "service:gluetun"
-    depends_on:
-      - gluetun
+    network_mode: "container:gluetun"
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
@@ -50,8 +24,3 @@ services:
       - traefik.http.routers.transmission-default.priority=0
       - traefik.http.routers.transmission-default.service=transmission
       - traefik.http.services.transmission.loadbalancer.server.port=9091
-
-networks:
-  traefik_proxy:
-    external: true
-    name: traefik_proxy
