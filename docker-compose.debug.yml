@@ -1,48 +1,4 @@
 services:
-  gluetun-webui:
-    image: scuzza/gluetun-webui:latest
-    container_name: gluetun-webui
-    ports:
-      - "127.0.0.1:3000:3000"
-    environment:
-      - GLUETUN_CONTROL_URL=http://gluetun:8000
-      - GLUETUN_API_KEY=${GLUETUN_API_KEY:-}
-      - GLUETUN_USER=${GLUETUN_USER:-}
-      - GLUETUN_PASSWORD=${GLUETUN_PASSWORD:-}
-      - TRUST_PROXY=true
-    networks:
-      - traefik_proxy
-    restart: unless-stopped
-    read_only: true
-    tmpfs:
-      - /tmp
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.gluetun-webui-slash.rule=Path(`/gluetun-webui`)
-      - traefik.http.routers.gluetun-webui-slash.entrypoints=web
-      - traefik.http.routers.gluetun-webui-slash.priority=120
-      - traefik.http.routers.gluetun-webui-slash.middlewares=gluetun-webui-add-slash
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.regex=^https?://([^/]+)/gluetun-webui$
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.replacement=http://$$1/gluetun-webui/
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.permanent=true
-      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui/`)
-      - traefik.http.routers.gluetun-webui.entrypoints=web
-      - traefik.http.routers.gluetun-webui.priority=110
-      - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip
-      - traefik.http.middlewares.gluetun-webui-strip.stripprefix.prefixes=/gluetun-webui
-      - traefik.http.services.gluetun-webui.loadbalancer.server.port=3000
-
   curl-check:
     image: curlimages/curl:8.8.0
     container_name: vpn-curl-check
