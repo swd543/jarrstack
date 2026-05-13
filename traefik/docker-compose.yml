@@ -21,8 +21,6 @@ services:
   gluetun:
     image: qmcgaw/gluetun:v3
     container_name: gluetun
-    env_file:
-      - ../.env
     cap_add:
       - NET_ADMIN
     devices:
@@ -33,14 +31,16 @@ services:
       - "8000"
     environment:
       - VPN_SERVICE_PROVIDER=protonvpn
-      - VPN_TYPE=${VPN_TYPE:-openvpn}
-      - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
+      # - VPN_TYPE=${VPN_TYPE:-openvpn}
+      # - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
       - TZ=${TZ:-UTC}
       - FIREWALL_INPUT_PORTS=9091,51413,8000
       - HTTP_CONTROL_SERVER_ADDRESS=:8000
       - 'HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE={"auth":"none"}'
       - FREE_ONLY=true
       - UPDATER_PERIOD=24h
+    env_file:
+      - ../.env
     restart: unless-stopped
     networks:
       - traefik_proxy
