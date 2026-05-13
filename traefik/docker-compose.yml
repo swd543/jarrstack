@@ -33,13 +33,13 @@ services:
       - "8000"
     environment:
       - VPN_SERVICE_PROVIDER=protonvpn
-      # - VPN_TYPE=openvpn
-      - VPN_TYPE=wireguard
+      - VPN_TYPE=${VPN_TYPE:-openvpn}
       - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
       - TZ=${TZ:-UTC}
       - FIREWALL_INPUT_PORTS=9091,51413,8000
       - HTTP_CONTROL_SERVER_ADDRESS=:8000
       - FREE_ONLY=true
+      - UPDATER_PERIOD=24h
     restart: unless-stopped
     networks:
       - traefik_proxy
