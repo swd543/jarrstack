@@ -19,7 +19,7 @@ services:
       - traefik_proxy
 
   gluetun:
-    image: qmcgaw/gluetun:latest
+    image: qmcgaw/gluetun:v3
     container_name: gluetun
     env_file:
       - ../.env
@@ -33,13 +33,13 @@ services:
       - "8000"
     environment:
       - VPN_SERVICE_PROVIDER=protonvpn
-      - VPN_TYPE=openvpn
+      # - VPN_TYPE=openvpn
+      - VPN_TYPE=wireguard
       - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
       - TZ=${TZ:-UTC}
       - FIREWALL_INPUT_PORTS=9091,51413,8000
       - HTTP_CONTROL_SERVER_ADDRESS=:8000
-    volumes:
-      - ../gluetun:/gluetun
+      - FREE_ONLY=true
     restart: unless-stopped
     networks:
       - traefik_proxy
