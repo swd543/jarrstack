@@ -55,8 +55,6 @@ services:
     container_name: gluetun-webui
     depends_on:
       - gluetun
-    env_file:
-      - ../.env
     ports:
       - "127.0.0.1:3000:3000"
     environment:
@@ -90,12 +88,14 @@ services:
       - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui/`)
       - traefik.http.routers.gluetun-webui.entrypoints=web
       - traefik.http.routers.gluetun-webui.priority=110
-      - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip
+      - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip,gluetun-webui-drop-xff
       - traefik.http.routers.gluetun-webui-api.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/api`)
       - traefik.http.routers.gluetun-webui-api.entrypoints=web
       - traefik.http.routers.gluetun-webui-api.priority=115
+      - traefik.http.routers.gluetun-webui-api.middlewares=gluetun-webui-drop-xff
       - traefik.http.routers.gluetun-webui-api.service=gluetun-webui
       - traefik.http.middlewares.gluetun-webui-strip.stripprefix.prefixes=/gluetun-webui
+      - traefik.http.middlewares.gluetun-webui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
       - traefik.http.services.gluetun-webui.loadbalancer.server.port=3000
 
 networks:
