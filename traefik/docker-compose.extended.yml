@@ -1,8 +1,8 @@
 services:
-  traefik:
+  proxy:
     extends:
       file: ./docker-compose.yml
-      service: traefik
+      service: proxy
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
@@ -17,15 +17,15 @@ services:
       - --metrics.prometheus.addrouterslabels=true
       - --metrics.prometheus.addserviceslabels=true
       - --tracing=true
-      - --tracing.serviceName=traefik
+      - --tracing.serviceName=proxy
       - --tracing.otlp.grpc=true
       - --tracing.otlp.grpc.endpoint=jaeger:4317
       - --tracing.otlp.grpc.insecure=true
 
-  gluetun:
+  vpn:
     extends:
       file: ./docker-compose.yml
-      service: gluetun
+      service: vpn
 
   jaeger:
     image: jaegertracing/all-in-one:1.57
@@ -50,15 +50,15 @@ services:
     networks:
       - traefik_proxy
 
-  gluetun-webui:
+  vpn-ui:
     image: scuzza/gluetun-webui:latest
-    container_name: gluetun-webui
+    container_name: vpn-ui
     depends_on:
-      - gluetun
+      - vpn
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - GLUETUN_CONTROL_URL=http://gluetun:8000
+      - GLUETUN_CONTROL_URL=http://vpn:8000
     networks:
       - traefik_proxy
     restart: unless-stopped
@@ -78,16 +78,30 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui`)
-      - traefik.http.routers.gluetun-webui.entrypoints=web
-      - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip,gluetun-webui-drop-xff
-      - traefik.http.routers.gluetun-webui-api.rule=PathPrefix(`/api`)
-      - traefik.http.routers.gluetun-webui-api.entrypoints=web
-      - traefik.http.routers.gluetun-webui-api.middlewares=gluetun-webui-drop-xff
-      - traefik.http.routers.gluetun-webui-api.service=gluetun-webui
-      - traefik.http.middlewares.gluetun-webui-strip.stripprefix.prefixes=/gluetun-webui
-      - traefik.http.middlewares.gluetun-webui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
-      - traefik.http.services.gluetun-webui.loadbalancer.server.port=3000
+      - traefik.http.routers.vpn-ui-slash.rule=Path(`/vpn-ui`)
+      - traefik.http.routers.vpn-ui-slash.entrypoints=web
+      - traefik.http.routers.vpn-ui-slash.priority=200
+      - traefik.http.routers.vpn-ui-slash.middlewares=vpn-ui-add-slash
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.regex=^https?://([^/]+)/vpn-ui$
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.replacement=http://$$1/vpn-ui/
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`)
+      - traefik.http.routers.vpn-ui.entrypoints=web
+      - traefik.http.routers.vpn-ui.middlewares=vpn-ui-strip,vpn-ui-drop-xff
+      - traefik.http.routers.vpn-ui-api.rule=PathPrefix(`/api`)
+      - traefik.http.routers.vpn-ui-api.entrypoints=web
+      - traefik.http.routers.vpn-ui-api.middlewares=vpn-ui-drop-xff
+      - traefik.http.routers.vpn-ui-api.service=vpn-ui
+      - traefik.http.middlewares.vpn-ui-strip.stripprefix.prefixes=/vpn-ui
+      - traefik.http.middlewares.vpn-ui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
+      - traefik.http.services.vpn-ui.loadbalancer.server.port=3000
+
+      # - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`) || PathPrefix(`/api`)
+      # - traefik.http.routers.vpn-ui.entrypoints=web
+      # - traefik.http.routers.vpn-ui.middlewares=vpn-ui-strip,vpn-ui-drop-xff
+      # - traefik.http.middlewares.vpn-ui-strip.stripprefix.prefixes=/vpn-ui
+      # - traefik.http.middlewares.vpn-ui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
+        # - traefik.http.services.vpn-ui.loadbalancer.server.port=3000
 
 networks:
   traefik_proxy:

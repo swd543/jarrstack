@@ -1,7 +1,7 @@
 services:
-  traefik:
+  proxy:
     image: traefik:latest
-    container_name: traefik
+    container_name: proxy
     restart: unless-stopped
     command:
       - --providers.docker=true
@@ -18,9 +18,9 @@ services:
     networks:
       - traefik_proxy
 
-  gluetun:
+  vpn:
     image: qmcgaw/gluetun:v3
-    container_name: gluetun
+    container_name: vpn
     cap_add:
       - NET_ADMIN
     devices:
