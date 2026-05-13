@@ -22,6 +22,11 @@ services:
       - --tracing.otlp.grpc.endpoint=jaeger:4317
       - --tracing.otlp.grpc.insecure=true
 
+  gluetun:
+    extends:
+      file: ./docker-compose.yml
+      service: gluetun
+
   jaeger:
     image: jaegertracing/all-in-one:1.57
     container_name: jaeger
@@ -48,6 +53,8 @@ services:
   gluetun-webui:
     image: scuzza/gluetun-webui:latest
     container_name: gluetun-webui
+    depends_on:
+      - gluetun
     env_file:
       - ../.env
     ports:
