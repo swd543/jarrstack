@@ -78,10 +78,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.gluetun-webui.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/gluetun-webui`)
+      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui`)
       - traefik.http.routers.gluetun-webui.entrypoints=web
       - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip,gluetun-webui-drop-xff
-      - traefik.http.routers.gluetun-webui-api.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/api`)
+      - traefik.http.routers.gluetun-webui-api.rule=PathPrefix(`/api`)
       - traefik.http.routers.gluetun-webui-api.entrypoints=web
       - traefik.http.routers.gluetun-webui-api.middlewares=gluetun-webui-drop-xff
       - traefik.http.routers.gluetun-webui-api.service=gluetun-webui
