@@ -61,7 +61,6 @@ services:
       - "127.0.0.1:3000:3000"
     environment:
       - GLUETUN_CONTROL_URL=http://gluetun:8000
-      - TRUST_PROXY=true
     networks:
       - traefik_proxy
     restart: unless-stopped
