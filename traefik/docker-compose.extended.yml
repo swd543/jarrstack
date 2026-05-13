@@ -78,20 +78,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.gluetun-webui-slash.rule=Path(`/gluetun-webui`)
-      - traefik.http.routers.gluetun-webui-slash.entrypoints=web
-      - traefik.http.routers.gluetun-webui-slash.priority=120
-      - traefik.http.routers.gluetun-webui-slash.middlewares=gluetun-webui-add-slash
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.regex=^https?://([^/]+)/gluetun-webui$
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.replacement=http://$$1/gluetun-webui/
-      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.permanent=true
-      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui/`)
+      - traefik.http.routers.gluetun-webui.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/gluetun-webui`)
       - traefik.http.routers.gluetun-webui.entrypoints=web
-      - traefik.http.routers.gluetun-webui.priority=110
       - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip,gluetun-webui-drop-xff
       - traefik.http.routers.gluetun-webui-api.rule=(Host(`localhost`) || Host(`bugaboxes.local`)) && PathPrefix(`/api`)
       - traefik.http.routers.gluetun-webui-api.entrypoints=web
-      - traefik.http.routers.gluetun-webui-api.priority=115
       - traefik.http.routers.gluetun-webui-api.middlewares=gluetun-webui-drop-xff
       - traefik.http.routers.gluetun-webui-api.service=gluetun-webui
       - traefik.http.middlewares.gluetun-webui-strip.stripprefix.prefixes=/gluetun-webui
