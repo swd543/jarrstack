@@ -85,23 +85,12 @@ services:
       - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.regex=^https?://([^/]+)/vpn-ui$
       - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.replacement=http://$$1/vpn-ui/
       - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.permanent=true
-      - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`)
+      - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`) || PathPrefix(`/api`)
       - traefik.http.routers.vpn-ui.entrypoints=web
       - traefik.http.routers.vpn-ui.middlewares=vpn-ui-strip,vpn-ui-drop-xff
-      - traefik.http.routers.vpn-ui-api.rule=PathPrefix(`/api`)
-      - traefik.http.routers.vpn-ui-api.entrypoints=web
-      - traefik.http.routers.vpn-ui-api.middlewares=vpn-ui-drop-xff
-      - traefik.http.routers.vpn-ui-api.service=vpn-ui
       - traefik.http.middlewares.vpn-ui-strip.stripprefix.prefixes=/vpn-ui
       - traefik.http.middlewares.vpn-ui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
       - traefik.http.services.vpn-ui.loadbalancer.server.port=3000
-
-      # - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`) || PathPrefix(`/api`)
-      # - traefik.http.routers.vpn-ui.entrypoints=web
-      # - traefik.http.routers.vpn-ui.middlewares=vpn-ui-strip,vpn-ui-drop-xff
-      # - traefik.http.middlewares.vpn-ui-strip.stripprefix.prefixes=/vpn-ui
-      # - traefik.http.middlewares.vpn-ui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
-        # - traefik.http.services.vpn-ui.loadbalancer.server.port=3000
 
 networks:
   traefik_proxy:
