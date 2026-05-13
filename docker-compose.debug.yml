@@ -9,6 +9,7 @@ services:
       - GLUETUN_API_KEY=${GLUETUN_API_KEY:-}
       - GLUETUN_USER=${GLUETUN_USER:-}
       - GLUETUN_PASSWORD=${GLUETUN_PASSWORD:-}
+      - TRUST_PROXY=true
     networks:
       - traefik_proxy
     restart: unless-stopped
@@ -20,7 +21,7 @@ services:
     cap_drop:
       - ALL
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 5s
       start_period: 10s
@@ -28,7 +29,14 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui`)
+      - traefik.http.routers.gluetun-webui-slash.rule=Path(`/gluetun-webui`)
+      - traefik.http.routers.gluetun-webui-slash.entrypoints=web
+      - traefik.http.routers.gluetun-webui-slash.priority=120
+      - traefik.http.routers.gluetun-webui-slash.middlewares=gluetun-webui-add-slash
+      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.regex=^https?://([^/]+)/gluetun-webui$
+      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.replacement=http://$$1/gluetun-webui/
+      - traefik.http.middlewares.gluetun-webui-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.gluetun-webui.rule=PathPrefix(`/gluetun-webui/`)
       - traefik.http.routers.gluetun-webui.entrypoints=web
       - traefik.http.routers.gluetun-webui.priority=110
       - traefik.http.routers.gluetun-webui.middlewares=gluetun-webui-strip
