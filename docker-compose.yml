@@ -20,3 +20,39 @@ services:
       - traefik.http.routers.torrent.priority=100
       - traefik.http.routers.torrent.service=torrent
       - traefik.http.services.torrent.loadbalancer.server.port=9091
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:arm64v8-latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./jellyfin/config:/config
+      - ./torrent/downloads:/data
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.jellyfin-slash.rule=Path(`/jellyfin`)
+      - traefik.http.routers.jellyfin-slash.entrypoints=web
+      - traefik.http.routers.jellyfin-slash.priority=200
+      - traefik.http.routers.jellyfin-slash.middlewares=jellyfin-add-slash
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.regex=^https?://([^/]+)/jellyfin$
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.replacement=http://$$1/jellyfin/
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.jellyfin.rule=PathPrefix(`/jellyfin`)
+      - traefik.http.routers.jellyfin.entrypoints=web
+      - traefik.http.routers.jellyfin.middlewares=jellyfin-strip
+      - traefik.http.middlewares.jellyfin-strip.stripprefix.prefixes=/jellyfin
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+
+networks:
+  proxy_net:
+    external: true
+    name: proxy_net
+
+  
