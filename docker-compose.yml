@@ -15,12 +15,8 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy_net
-      - traefik.http.routers.torrent.rule=Host(`bugaboxes.local`) && PathPrefix(`/torrent`)
+      - traefik.http.routers.torrent.rule=PathPrefix(`/torrent`)
       - traefik.http.routers.torrent.entrypoints=web
       - traefik.http.routers.torrent.priority=100
       - traefik.http.routers.torrent.service=torrent
-      - traefik.http.routers.torrent-default.rule=Host(`bugaboxes.local`)
-      - traefik.http.routers.torrent-default.entrypoints=web
-      - traefik.http.routers.torrent-default.priority=0
-      - traefik.http.routers.torrent-default.service=torrent
       - traefik.http.services.torrent.loadbalancer.server.port=9091
