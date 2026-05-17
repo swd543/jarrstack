@@ -11,12 +11,12 @@ services:
       - ./torrent/config:/config
       - ./torrent/downloads:/downloads
       - ./torrent/watch:/watch
-    healthcheck:
-      test: ["CMD-SHELL", "nslookup github.com >/dev/null"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 50s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nslookup github.com >/dev/null"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 10s
     restart: unless-stopped
     labels:
       - autoheal=true
@@ -167,6 +167,33 @@ services:
       - traefik.http.routers.lidarr.rule=PathPrefix(`/lidarr`)
       - traefik.http.routers.lidarr.entrypoints=web
       - traefik.http.services.lidarr.loadbalancer.server.port=8686
+
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./bazarr/config:/config
+      - ./torrent/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.bazarr-slash.rule=Path(`/bazarr`)
+      - traefik.http.routers.bazarr-slash.entrypoints=web
+      - traefik.http.routers.bazarr-slash.priority=200
+      - traefik.http.routers.bazarr-slash.middlewares=bazarr-add-slash
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.regex=^https?://([^/]+)/bazarr$
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.replacement=http://$$1/bazarr/
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.bazarr.rule=PathPrefix(`/bazarr`)
+      - traefik.http.routers.bazarr.entrypoints=web
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
 
   seerr:
     image: seerr/seerr:latest
