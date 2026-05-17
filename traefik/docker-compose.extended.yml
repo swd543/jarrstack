@@ -27,6 +27,11 @@ services:
       file: ./docker-compose.yml
       service: vpn
 
+  autoheal:
+    extends:
+      file: ./docker-compose.yml
+      service: autoheal
+
   jaeger:
     image: jaegertracing/all-in-one:1.57
     container_name: jaeger

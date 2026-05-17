@@ -12,11 +12,11 @@ services:
       - ./torrent/downloads:/downloads
       - ./torrent/watch:/watch
     healthcheck:
-      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/127.0.0.1/9091' && getent hosts github.com >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "nslookup github.com >/dev/null"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 50s
     restart: unless-stopped
     labels:
       - autoheal=true

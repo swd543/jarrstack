@@ -42,11 +42,16 @@ services:
     env_file:
       - ../.env
     healthcheck:
-      test: ["CMD-SHELL", "/gluetun-entrypoint healthcheck && nslookup google.com >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "/gluetun-entrypoint healthcheck && nslookup cloudflare-dns.com >/dev/null 2>&1"]
       interval: 5s
       timeout: 5s
       start_period: 10s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "2m"
+        max-file: "3"
     restart: unless-stopped
     labels:
       - autoheal=true
