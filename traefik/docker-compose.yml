@@ -48,8 +48,20 @@ services:
       start_period: 10s
       retries: 3
     restart: unless-stopped
+    labels:
+      - autoheal=true
     networks:
       - proxy_net
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
 networks:
   proxy_net:
