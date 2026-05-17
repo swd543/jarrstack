@@ -78,6 +78,32 @@ services:
       - traefik.http.routers.radarr.entrypoints=web
       - traefik.http.services.radarr.loadbalancer.server.port=7878
 
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./prowlarr/config:/config
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.prowlarr-slash.rule=Path(`/prowlarr`)
+      - traefik.http.routers.prowlarr-slash.entrypoints=web
+      - traefik.http.routers.prowlarr-slash.priority=200
+      - traefik.http.routers.prowlarr-slash.middlewares=prowlarr-add-slash
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.regex=^https?://([^/]+)/prowlarr$
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.replacement=http://$$1/prowlarr/
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.prowlarr.rule=PathPrefix(`/prowlarr`)
+      - traefik.http.routers.prowlarr.entrypoints=web
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+
   seerr:
     image: seerr/seerr:latest
     container_name: seerr
