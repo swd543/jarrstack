@@ -8,3 +8,9 @@ setup:
 		torrent/{config,watch,downloads/{incomplete,complete/{radarr,sonarr,lidarr}}}
 	@sudo chown -R $$(id -u):$$(id -g) radarr seerr jellyfin sonarr lidarr prowlarr torrent
 	@sudo chmod -R 755 radarr seerr jellyfin sonarr lidarr prowlarr torrent
+
+restart-vpn:
+	@docker container restart vpn
+
+up:
+	@docker compose up -d
