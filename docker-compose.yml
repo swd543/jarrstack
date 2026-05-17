@@ -12,7 +12,7 @@ services:
       - ./torrent/downloads:/downloads
       - ./torrent/watch:/watch
     healthcheck:
-      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/127.0.0.1/9091'"]
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/127.0.0.1/9091' && getent hosts github.com >/dev/null 2>&1"]
       interval: 30s
       timeout: 5s
       retries: 3
