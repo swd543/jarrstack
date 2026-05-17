@@ -85,6 +85,7 @@ services:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
+      - Prowlarr__Server__UrlBase=prowlarr
     volumes:
       - ./prowlarr/config:/config
     restart: unless-stopped
@@ -103,6 +104,62 @@ services:
       - traefik.http.routers.prowlarr.rule=PathPrefix(`/prowlarr`)
       - traefik.http.routers.prowlarr.entrypoints=web
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Sonarr__Server__UrlBase=sonarr
+    volumes:
+      - ./sonarr/config:/config
+      - ./torrent/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.sonarr-slash.rule=Path(`/sonarr`)
+      - traefik.http.routers.sonarr-slash.entrypoints=web
+      - traefik.http.routers.sonarr-slash.priority=200
+      - traefik.http.routers.sonarr-slash.middlewares=sonarr-add-slash
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.regex=^https?://([^/]+)/sonarr$
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.replacement=http://$$1/sonarr/
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.sonarr.rule=PathPrefix(`/sonarr`)
+      - traefik.http.routers.sonarr.entrypoints=web
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+
+  lidarr:
+    image: ghcr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Lidarr__Server__UrlBase=lidarr
+    volumes:
+      - ./lidarr/config:/config
+      - ./torrent/downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.lidarr-slash.rule=Path(`/lidarr`)
+      - traefik.http.routers.lidarr-slash.entrypoints=web
+      - traefik.http.routers.lidarr-slash.priority=200
+      - traefik.http.routers.lidarr-slash.middlewares=lidarr-add-slash
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.regex=^https?://([^/]+)/lidarr$
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.replacement=http://$$1/lidarr/
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.lidarr.rule=PathPrefix(`/lidarr`)
+      - traefik.http.routers.lidarr.entrypoints=web
+      - traefik.http.services.lidarr.loadbalancer.server.port=8686
 
   seerr:
     image: seerr/seerr:latest
