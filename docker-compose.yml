@@ -11,12 +11,12 @@ services:
       - ./torrent/config:/config
       - ./torrent/downloads:/downloads
       - ./torrent/watch:/watch
-    # healthcheck:
-    #   test: ["CMD-SHELL", "nslookup github.com >/dev/null"]
-    #   interval: 30s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 10s
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 -W 3 1.1.1.1 >/dev/null 2>&1"]
+      interval: 55s
+      timeout: 13s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
     labels:
       - autoheal=true
