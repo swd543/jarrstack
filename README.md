@@ -37,10 +37,7 @@
 - Authentication required `Disabled for local addresses`
 - Username/password
 - Media Management root folder: `/downloads/complete/radarr`
-- Download client: add Transmission
-- Host `vpn`
-- Port `9091`
-- URL Base `/transmission/`
+- Download client: add Transmission (`vpn`, `9091`, URL Base `/transmission/`)
 
 ## Configure Sonarr
 - Open `<hostname>/sonarr` in browser
@@ -60,7 +57,7 @@
 
 ## Configure Prowlarr
 - Open `<hostname>/prowlarr` in browser
-- Add your indexers
+- Add your indexers (tpb)
 - Settings -> Apps -> add Radarr, Sonarr, and Lidarr
 - Use internal URLs:
 - Radarr: `http://radarr:7878`
