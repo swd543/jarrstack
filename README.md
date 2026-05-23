@@ -18,7 +18,12 @@
 - Open `<hostname>/jellyfin` in browser
 - Server name `<hostname>`
 - Username/password
-- Fill in remaining information and close
+- Under set up your media libraries, add the following media libraries
+- Movies > folders /data/complete/radarr
+- Automatically refresh metadata from internet to 30 days (optional)
+- Music > folders /data/complete/libarr
+- Shows > folders /data/complete/sonarr
+- Allow remote access to this server 
 
 ## Configure Transmission
 - Open `<hostname>/transmission` in browser
@@ -73,6 +78,7 @@
 
 ## Configure Seerr
 - Open `<hostname>/` in browser
+- Select `Configure Jellyfin`
 - Complete setup wizard
 - Add Jellyfin server using internal URL `http://jellyfin:8096`
 - Add Radarr and Sonarr services using internal URLs:
