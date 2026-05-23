@@ -8,9 +8,8 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
     volumes:
-      - ./torrent/config:/config
-      - ./torrent/downloads:/downloads
-      - ./torrent/watch:/watch
+      - ./data/torrent:/config
+      - ./downloads:/downloads
     healthcheck:
       test: ["CMD-SHELL", "ping -c 1 -W 3 1.1.1.1 >/dev/null 2>&1"]
       interval: 55s
@@ -36,8 +35,8 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
     volumes:
-      - ./jellyfin/config:/config
-      - ./torrent/downloads:/data
+      - ./data/jellyfin:/config
+      - ./downloads:/data
     restart: unless-stopped
     networks:
       - proxy_net
@@ -66,8 +65,8 @@ services:
       - TZ=${TZ:-UTC}
       - Radarr__Server__UrlBase=radarr
     volumes:
-      - ./radarr/config:/config
-      - ./torrent/downloads:/downloads
+      - ./data/radarr:/config
+      - ./downloads:/downloads
     restart: unless-stopped
     networks:
       - proxy_net
@@ -94,7 +93,7 @@ services:
       - TZ=${TZ:-UTC}
       - Prowlarr__Server__UrlBase=prowlarr
     volumes:
-      - ./prowlarr/config:/config
+      - ./data/prowlarr:/config
     restart: unless-stopped
     networks:
       - proxy_net
@@ -121,8 +120,8 @@ services:
       - TZ=${TZ:-UTC}
       - Sonarr__Server__UrlBase=sonarr
     volumes:
-      - ./sonarr/config:/config
-      - ./torrent/downloads:/downloads
+      - ./data/sonarr:/config
+      - ./downloads:/downloads
     restart: unless-stopped
     networks:
       - proxy_net
@@ -149,8 +148,8 @@ services:
       - TZ=${TZ:-UTC}
       - Lidarr__Server__UrlBase=lidarr
     volumes:
-      - ./lidarr/config:/config
-      - ./torrent/downloads:/downloads
+      - ./data/lidarr:/config
+      - ./downloads:/downloads
     restart: unless-stopped
     networks:
       - proxy_net
@@ -176,8 +175,8 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
     volumes:
-      - ./bazarr/config:/config
-      - ./torrent/downloads:/downloads
+      - ./data/bazarr:/config
+      - ./downloads:/downloads
     restart: unless-stopped
     networks:
       - proxy_net
@@ -203,7 +202,7 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
     volumes:
-      - ./seerr/config:/app/config
+      - ./data/seerr:/app/config
     restart: unless-stopped
     networks:
       - proxy_net

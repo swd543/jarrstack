@@ -1,15 +1,13 @@
 SHELL := /bin/bash
 
 clean:
-	@sudo rm -rf {radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr,torrent}/*
+	@sudo rm -rf data/{radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr,torrent}/*
 
 setup:
-	@sudo mkdir -p {radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr}/config \
-		torrent/{config,watch,downloads/{incomplete,complete/{radarr,sonarr,lidarr}}}
-	@sudo mkdir -p bazarr/config/config
-	@sudo test -f bazarr/config/config/config.ini || sudo sh -c "printf '%s\n' '[general]' 'base_url = /bazarr/' > bazarr/config/config/config.ini"
-	@sudo chown -R $$(id -u):$$(id -g) radarr seerr jellyfin sonarr lidarr prowlarr bazarr torrent
-	@sudo chmod -R 755 radarr seerr jellyfin sonarr lidarr prowlarr bazarr torrent
+	@sudo mkdir -p data/{radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr,torrent} \
+		downloads/{incomplete,complete/{radarr,sonarr,lidarr}}
+	@sudo chown -R $$(id -u):$$(id -g) data/{radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr,torrent}
+	@sudo chmod -R 755 data/{radarr,seerr,jellyfin,sonarr,lidarr,prowlarr,bazarr,torrent}
 
 restart-vpn:
 	@docker container restart vpn
