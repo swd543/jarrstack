@@ -1,0 +1,28 @@
+services:
+  curl-check:
+    image: curlimages/curl:8.8.0
+    container_name: vpn-curl-check
+    network_mode: "container:vpn"
+    command: >
+      sh -c 'while true; do
+        echo "---- $(date -u +%FT%TZ) ----";
+        echo "Public IP and location via VPN:";
+        curl -fsSL https://ipinfo.io/json;
+        echo;
+        sleep 30;
+      done'
+    restart: unless-stopped
+
+  curl-once:
+    image: curlimages/curl:8.8.0
+    network_mode: "container:vpn"
+    profiles:
+      - verify
+    command: >
+      sh -c 'echo "Public IP via VPN:" &&
+      curl -fsSL https://ipinfo.io/json'
+
+networks:
+  proxy_net:
+    external: true
+    name: proxy_net

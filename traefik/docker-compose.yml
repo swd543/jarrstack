@@ -1,0 +1,77 @@
+services:
+  proxy:
+    image: traefik:latest
+    container_name: proxy
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy_net
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+      - --api.insecure=true
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy_net
+
+  vpn:
+    image: qmcgaw/gluetun:v3
+    container_name: vpn
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    expose:
+      - "9091"
+      - "51413"
+      - "8000"
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      # - VPN_TYPE=${VPN_TYPE:-openvpn}
+      # - SERVER_COUNTRIES=${SERVER_COUNTRIES:-Mexico,United States,Singapore,Japan,Canada,Norway,Poland,Romania,Switzerland}
+      - TZ=${TZ:-UTC}
+      - FIREWALL_INPUT_PORTS=9091,51413,8000
+      - HTTP_CONTROL_SERVER_ADDRESS=:8000
+      - 'HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE={"auth":"none"}'
+      - FREE_ONLY=true
+      # - UPDATER_PERIOD=24h
+      # - DNS_UPSTREAM_RESOLVERS=libredns,opendns,cleanbrowsing adult,google
+      # - DNS_UPSTREAM_IPV6=on
+      # - BLOCK_SURVEILLANCE=true
+    env_file:
+      - ../.env
+    healthcheck:
+      test: ["CMD-SHELL", "/gluetun-entrypoint healthcheck && nslookup github.com >/dev/null 2>&1"]
+      interval: 47s
+      timeout: 5s
+      start_period: 26s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "2m"
+        max-file: "3"
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+    networks:
+      - proxy_net
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+networks:
+  proxy_net:
+    name: proxy_net
+    driver: bridge

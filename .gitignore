@@ -1,0 +1,13 @@
+.env
+transmission
+gluetun
+torrent
+jellyfin
+sonarr
+radarr
+seerr
+prowlarr
+lidarr
+bazarr
+data
+downloads

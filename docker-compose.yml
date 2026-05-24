@@ -1,0 +1,235 @@
+services:
+  torrent:
+    image: lscr.io/linuxserver/transmission:arm64v8-latest
+    container_name: torrent
+    network_mode: "container:vpn"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./data/torrent:/config
+      - ./downloads:/downloads
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 -W 3 1.1.1.1 >/dev/null 2>&1"]
+      interval: 55s
+      timeout: 13s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.torrent.rule=PathPrefix(`/transmission`)
+      - traefik.http.routers.torrent.entrypoints=web
+      - traefik.http.routers.torrent.priority=100
+      - traefik.http.routers.torrent.service=torrent
+      - traefik.http.services.torrent.loadbalancer.server.port=9091
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:10.11.8
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./data/jellyfin:/config
+      - ./downloads:/data
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.jellyfin-slash.rule=Path(`/jellyfin`)
+      - traefik.http.routers.jellyfin-slash.entrypoints=web
+      - traefik.http.routers.jellyfin-slash.priority=200
+      - traefik.http.routers.jellyfin-slash.middlewares=jellyfin-add-slash
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.regex=^https?://([^/]+)/jellyfin$
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.replacement=http://$$1/jellyfin/
+      - traefik.http.middlewares.jellyfin-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.jellyfin.rule=PathPrefix(`/jellyfin`)
+      - traefik.http.routers.jellyfin.entrypoints=web
+      - traefik.http.routers.jellyfin.middlewares=jellyfin-strip
+      - traefik.http.middlewares.jellyfin-strip.stripprefix.prefixes=/jellyfin
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:arm64v8-latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Radarr__Server__UrlBase=radarr
+    volumes:
+      - ./data/radarr:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.radarr-slash.rule=Path(`/radarr`)
+      - traefik.http.routers.radarr-slash.entrypoints=web
+      - traefik.http.routers.radarr-slash.priority=200
+      - traefik.http.routers.radarr-slash.middlewares=radarr-add-slash
+      - traefik.http.middlewares.radarr-add-slash.redirectregex.regex=^https?://([^/]+)/radarr$
+      - traefik.http.middlewares.radarr-add-slash.redirectregex.replacement=http://$$1/radarr/
+      - traefik.http.middlewares.radarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.radarr.rule=PathPrefix(`/radarr`)
+      - traefik.http.routers.radarr.entrypoints=web
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Prowlarr__Server__UrlBase=prowlarr
+    volumes:
+      - ./data/prowlarr:/config
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.prowlarr-slash.rule=Path(`/prowlarr`)
+      - traefik.http.routers.prowlarr-slash.entrypoints=web
+      - traefik.http.routers.prowlarr-slash.priority=200
+      - traefik.http.routers.prowlarr-slash.middlewares=prowlarr-add-slash
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.regex=^https?://([^/]+)/prowlarr$
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.replacement=http://$$1/prowlarr/
+      - traefik.http.middlewares.prowlarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.prowlarr.rule=PathPrefix(`/prowlarr`)
+      - traefik.http.routers.prowlarr.entrypoints=web
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Sonarr__Server__UrlBase=sonarr
+    volumes:
+      - ./data/sonarr:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.sonarr-slash.rule=Path(`/sonarr`)
+      - traefik.http.routers.sonarr-slash.entrypoints=web
+      - traefik.http.routers.sonarr-slash.priority=200
+      - traefik.http.routers.sonarr-slash.middlewares=sonarr-add-slash
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.regex=^https?://([^/]+)/sonarr$
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.replacement=http://$$1/sonarr/
+      - traefik.http.middlewares.sonarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.sonarr.rule=PathPrefix(`/sonarr`)
+      - traefik.http.routers.sonarr.entrypoints=web
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+
+  lidarr:
+    image: ghcr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Lidarr__Server__UrlBase=lidarr
+    volumes:
+      - ./data/lidarr:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.lidarr-slash.rule=Path(`/lidarr`)
+      - traefik.http.routers.lidarr-slash.entrypoints=web
+      - traefik.http.routers.lidarr-slash.priority=200
+      - traefik.http.routers.lidarr-slash.middlewares=lidarr-add-slash
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.regex=^https?://([^/]+)/lidarr$
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.replacement=http://$$1/lidarr/
+      - traefik.http.middlewares.lidarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.lidarr.rule=PathPrefix(`/lidarr`)
+      - traefik.http.routers.lidarr.entrypoints=web
+      - traefik.http.services.lidarr.loadbalancer.server.port=8686
+
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - Bazarr__Server__UrlBase=bazarr
+    volumes:
+      - ./data/bazarr:/config 
+      - ./downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.bazarr-slash.rule=Path(`/bazarr`)
+      - traefik.http.routers.bazarr-slash.entrypoints=web
+      - traefik.http.routers.bazarr-slash.priority=200
+      - traefik.http.routers.bazarr-slash.middlewares=bazarr-add-slash
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.regex=^https?://([^/]+)/bazarr$
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.replacement=http://$$1/bazarr/
+      - traefik.http.middlewares.bazarr-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.bazarr.rule=PathPrefix(`/bazarr`)
+      - traefik.http.routers.bazarr.entrypoints=web
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
+
+  seerr:
+    image: seerr/seerr:latest
+    container_name: seerr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./data/seerr:/app/config
+    restart: unless-stopped
+    networks:
+      - proxy_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.seerr-api.rule=PathPrefix(`/api/v1`)
+      - traefik.http.routers.seerr-api.entrypoints=web
+      - traefik.http.routers.seerr-api.priority=200
+      - traefik.http.routers.seerr-api.service=seerr
+      - traefik.http.routers.seerr-setup.rule=PathPrefix(`/setup`)
+      - traefik.http.routers.seerr-setup.entrypoints=web
+      - traefik.http.routers.seerr-setup.priority=200
+      - traefik.http.routers.seerr-setup.service=seerr
+      - traefik.http.routers.seerr-next.rule=PathPrefix(`/_next`)
+      - traefik.http.routers.seerr-next.entrypoints=web
+      - traefik.http.routers.seerr-next.priority=200
+      - traefik.http.routers.seerr-next.service=seerr
+      - traefik.http.routers.seerr.rule=PathPrefix(`/`)
+      - traefik.http.routers.seerr.entrypoints=web
+      - traefik.http.routers.seerr.priority=1
+      - traefik.http.services.seerr.loadbalancer.server.port=5055
+
+networks:
+  proxy_net:
+    external: true
+    name: proxy_net
+
+  

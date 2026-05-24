@@ -1,0 +1,103 @@
+services:
+  proxy:
+    extends:
+      file: ./docker-compose.yml
+      service: proxy
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy_net
+      - --entrypoints.web.address=:80
+      - --entrypoints.metrics.address=:8082
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --metrics.prometheus=true
+      - --metrics.prometheus.entrypoint=metrics
+      - --metrics.prometheus.addentrypointslabels=true
+      - --metrics.prometheus.addrouterslabels=true
+      - --metrics.prometheus.addserviceslabels=true
+      - --tracing=true
+      - --tracing.serviceName=proxy
+      - --tracing.otlp.grpc=true
+      - --tracing.otlp.grpc.endpoint=jaeger:4317
+      - --tracing.otlp.grpc.insecure=true
+
+  vpn:
+    extends:
+      file: ./docker-compose.yml
+      service: vpn
+
+  autoheal:
+    extends:
+      file: ./docker-compose.yml
+      service: autoheal
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - proxy_net
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - proxy_net
+
+  vpn-ui:
+    image: scuzza/gluetun-webui:latest
+    container_name: vpn-ui
+    depends_on:
+      - vpn
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GLUETUN_CONTROL_URL=http://vpn:8000
+    networks:
+      - proxy_net
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy_net
+      - traefik.http.routers.vpn-ui-slash.rule=Path(`/vpn-ui`)
+      - traefik.http.routers.vpn-ui-slash.entrypoints=web
+      - traefik.http.routers.vpn-ui-slash.priority=200
+      - traefik.http.routers.vpn-ui-slash.middlewares=vpn-ui-add-slash
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.regex=^https?://([^/]+)/vpn-ui$
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.replacement=http://$$1/vpn-ui/
+      - traefik.http.middlewares.vpn-ui-add-slash.redirectregex.permanent=true
+      - traefik.http.routers.vpn-ui.rule=PathPrefix(`/vpn-ui`) || PathPrefix(`/api`)
+      - traefik.http.routers.vpn-ui.entrypoints=web
+      - traefik.http.routers.vpn-ui.middlewares=vpn-ui-strip,vpn-ui-drop-xff
+      - traefik.http.middlewares.vpn-ui-strip.stripprefix.prefixes=/vpn-ui
+      - traefik.http.middlewares.vpn-ui-drop-xff.headers.customrequestheaders.X-Forwarded-For=
+      - traefik.http.services.vpn-ui.loadbalancer.server.port=3000
+
+networks:
+  proxy_net:
+    name: proxy_net
+    driver: bridge
